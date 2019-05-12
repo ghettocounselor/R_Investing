@@ -1,0 +1,98 @@
+---
+title: "Practical Data Science: Analyzing Stock Market Data with R"
+output: html_notebook
+---
+
+This is an [R Markdown](http://rmarkdown.rstudio.com) Notebook. 
+
+Based on a Udemy Class
+(https://www.udemy.com/practical-data-science-analyzing-stock-market-data-with-r/learn/lecture/3374968#overview)
+
+using quantmod from Cran
+(https://cran.r-project.org/web/packages/quantmod/)
+
+
+Try executing this chunk by clicking the *Run* button within the chunk or by placing your cursor inside it and pressing *Cmd+Shift+Enter*. 
+
+```{r setup, include=FALSE}
+# install.packages('quantmod')
+library(quantmod)
+```
+```{r setup, include=FALSE}
+?quantmod
+```
+
+We'll use Yahoo here but Google Finance is also supported. 
+(https://finance.yahoo.com/lookup/)
+In this case we'll use the S&P 500 as an example; code GSPC on Yahoo
+
+```{r setup, include=FALSE}
+getSymbols('^GSPC', src='yahoo')
+```
+``` {r}
+head(GSPC)
+```
+``` {r}
+tail(GSPC)
+```
+``` {r}
+class(GSPC)
+```
+XTS is time series data and zoo is also time series data. 
+
+``` {r}
+summary(GSPC)
+```
+
+Also how to call multiple symbols at once by creating a vector of symbols
+and then pass the basket to the getSymbols function.
+
+```{r setup, include=FALSE}
+symbolBasket <- c('AAPL', 'AMZN', 'BRK-B')
+getSymbols(symbolBasket , src='yahoo')
+```
+
+Summary will show us basics
+```{r setup, include=TRUE}
+summary(`BRK-B`)
+```
+
+Now lets group them all together for a future comparison. 
+Trick here is we might not have the same amount of data due to age of stocks
+we'll use the XTS nature of the data to hook them together. 
+
+NOTE: BRK-B IS ODD SO IT NEEDS THE `` AROUND IT
+
+```{r setup, include=FALSE}
+symbolBasketGrp <- data.frame(as.xts(merge(AAPL, AMZN, `BRK-B`)))
+```
+
+Let's have a look
+
+```{r setup, include=TRUE}
+head(symbolBasketGrp)
+```
+
+```{r setup, include=TRUE}
+tail(symbolBasketGrp)
+```
+
+================== NOTES on Syntax below here
+two options for code in MarkDown
+```{r setup, include=TRUE}
+getSymbols('^GSPC', src='yahoo')
+```
+
+
+```{r setup, include=FALSE}
+getSymbols('^GSPC', src='yahoo')
+```
+
+
+
+Add a new chunk by clicking the *Insert Chunk* button on the toolbar or by pressing *Cmd+Option+I*.
+
+When you save the notebook, an HTML file containing the code and output will be saved alongside it (click the *Preview* button or press *Cmd+Shift+K* to preview the HTML file). 
+
+The preview shows you a rendered HTML copy of the contents of the editor. Consequently, unlike *Knit*, *Preview* does not run any R code chunks. Instead, the output of the chunk when it was last run in the editor is displayed.
+
