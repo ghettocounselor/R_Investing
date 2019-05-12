@@ -4,6 +4,7 @@ output: html_notebook
 ---
 
 This is an [R Markdown](http://rmarkdown.rstudio.com) Notebook. 
+RMD available here (https://github.com/ghettocounselor/R_Investing/blob/master/PracticalDataScience_AnalyzingStocks_IndicatorsPUB.Rmd)
 
 using quantmod from Cran
 (https://cran.r-project.org/web/packages/quantmod/)
