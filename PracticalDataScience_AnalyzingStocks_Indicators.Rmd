@@ -1,0 +1,322 @@
+---
+title: "Practical Data Science: Analyzing Stock Market Data with R"
+output: html_notebook
+---
+
+This is an [R Markdown](http://rmarkdown.rstudio.com) Notebook. 
+
+Based on a Udemy Class
+(https://www.udemy.com/practical-data-science-analyzing-stock-market-data-with-r/learn/lecture/3407770#overview)
+
+using quantmod from Cran
+(https://cran.r-project.org/web/packages/quantmod/)
+
+
+```{r}
+# install.packages('quantmod')
+library(quantmod)
+```
+
+```{r echo=TRUE}
+?quantmod
+```
+
+We'll use Yahoo here but Google Finance is also supported. 
+(https://finance.yahoo.com/lookup/)
+
+We'll call multiple symbols at once by creating a vector of symbols
+and then pass the basket to the getSymbols function.
+
+```{r  }
+symbolBasket <- c('AAPL', 'AMZN', 'BRK-B', 'SPY')
+getSymbols(symbolBasket , src='yahoo')
+```
+
+Summary will show us basics
+```{r , include=TRUE}
+summary(`BRK-B`)
+```
+
+Now lets group them all together for a future comparison. 
+Trick here is we might not have the same amount of data due to age of stocks
+we'll use the XTS nature of the data to hook them together. In this case we have all data all dates. 
+
+NOTE: BRK-B IS ODD SO IT NEEDS THE `` AROUND IT
+
+```{r  }
+symbolBasketGrp <- data.frame(as.xts(merge(AAPL, AMZN, `BRK-B`, SPY)))
+```
+
+=========================================================================================
+# charting starts here
+=========================================================================================
+Lecture 4 (https://www.udemy.com/practical-data-science-analyzing-stock-market-data-with-r/learn/lecture/3407770#questions/7085910)
+
+```{r  }
+names(`BRK-B`)
+```
+
+```{r echo=TRUE}
+plot(`BRK-B`$`BRK-B.Open`)
+```
+
+To view some variation on this a bit we can use this code;
+
+```{r  }
+lineChart(`BRK-B`$`BRK-B.Open`, line.type = 'h', theme = 'white', TA = NULL)
+```
+
+To see volumes;
+remove the TA
+
+```{r  }
+lineChart(`BRK-B`, line.type = 'h', theme = 'white')
+```
+
+Barchart, type allows for high, low, close ;) 
+
+```{r  }
+barChart(`BRK-B`, bar.type = 'hlc', TA = NULL)
+```
+
+Now just a subset and in candle sticks
+```{r echo=TRUE}
+candleChart(`BRK-B`, TA=NULL, subset = '2019')
+```
+
+
+```{r  }
+?candleChart
+```
+
+## Not run: 
+getSymbols("YHOO")
+chartSeries(YHOO)
+chartSeries(YHOO, subset='last 4 months')
+chartSeries(YHOO, subset='2007::2008-01')
+chartSeries(YHOO,theme=chartTheme('white'))
+chartSeries(YHOO,TA=NULL)   #no volume
+chartSeries(YHOO,TA=c(addVo(),addBBands()))  #add volume and Bollinger Bands from TTR
+
+NOTE there are a ton of add... items that are very slick
+
+addMACD()   #  add MACD indicator to current chart
+
+setTA()
+chartSeries(YHOO)   #draws chart again, this time will all indicators present
+
+## End(Not run)
+
+Add MACD 
+
+```{r  }
+candleChart(`BRK-B`, TA=c(addMACD(),addVo()), subset = '2019')
+```
+
+?addMACD
+```{r , include=TRUE}
+?addMACD()
+```
+
+addMACD(fast = 12, slow = 26, signal = 9, type = "EMA", histogram = TRUE, col)
+
+Various ways to dictate time, in this case everything after...
+Also added in ADX
+```{r  }
+candleChart(`BRK-B`, TA=c(addMACD(),addADX()), subset = '2018-01::')
+```
+
+Various ways to dictate time, in this case everything in between...
+Background is the 'Theme'
+
+```{r  }
+candleChart(AAPL , TA=c(addMACD()), subset = '2018-01::2018-05', theme = 'white')
+```
+
+Various options for theme's overall
+
+```{r  }
+candleChart(AAPL , TA=c(addMACD()), subset = '2019-01::', theme = chartTheme('white', up.col='green',dn.col='darkred'))
+```
+
+chartSeries is another cool way to do this same stuff
+
+```{r }
+?chartSeries
+```
+
+```{r }
+chartSeries(AAPL, 
+            type = c("auto", "candlesticks"), 
+            subset = '2019-01::',
+            show.grid = TRUE,
+            major.ticks='auto', minor.ticks=TRUE,
+            TA=c(addMACD(),addVo()))
+```
+
+
+```{r }
+chartSeries(AAPL, 
+            type = c("auto", "candlesticks"), 
+            subset = '2018-01::',
+            show.grid = TRUE,
+            major.ticks='auto', minor.ticks=TRUE,
+            multi.col = TRUE,
+            TA=c(addMACD(),addVo()))
+```
+
+```{r }
+chartSeries(`BRK-B`, 
+            type = c("auto", "matchsticks"), 
+            subset = '2018-01::',
+            show.grid = TRUE,
+            major.ticks='auto', minor.ticks=TRUE,
+            multi.col = TRUE,
+            TA=c(addMACD(),addVo()))
+```
+
+=========================================================================================
+# Adding indicators starts here - although we jumped ahead up above
+=========================================================================================
+Lecture 5 (https://www.udemy.com/practical-data-science-analyzing-stock-market-data-with-r/learn/lecture/3407812#questions/7085910)
+
+We'll use TTR, which is installed with quantmod, if not you can install TTR
+TTR - Technical Trading Rules
+So Cool!
+
+```{r  }
+?TTR
+```
+
+Let's do a Simple Moving Average
+
+```{r }
+chartSeries(`BRK-B`, 
+            type = c("auto", "matchsticks"), 
+            subset = '2018-01::',
+            show.grid = TRUE,
+            major.ticks='auto', minor.ticks=TRUE,
+            multi.col = FALSE,
+            TA=c(addMACD(),addVo(),addSMA(n=200,col = 'blue'),addSMA(n=50,col = 'red'),addSMA(n=22,col = 'green'),
+            addROC(n=200,col = 'blue'),addROC(n=50,col = 'red'),addROC(n=22,col = 'green'))) # rate of change
+```
+
+Bollinger bands
+Basics;
+addBBands(n = 20, sd = 2, maType = "SMA", draw = 'bands', on = -1)
+
+``` {r  }
+?addBBands
+```
+
+Experimental BBands "The primary addition to this function call over the TTR version is in the draw argument. ‘bands’ will draw standard Bollinger Bands, ‘percent’ will draw Bollinger %b and ‘width’ will draw Bolinger Bands Width. The last two will be drawn in new figure regions."
+``` {r  }
+?add_BBands
+```
+
+``` {r  }
+chartSeries(SPY, theme="white",
+ TA="addVo();addBBands();addCCI()", subset = '2018-01::')
+```
+
+
+``` {r  }
+chartSeries(`BRK-B`, theme="white",
+ TA="addVo();addBBands();addCCI()", subset = '2018-01::')
+```
+
+
+=========================================================================================
+# CUSTOM INDICATOR
+=========================================================================================
+Start with a simple chart. 
+
+``` {r }
+chartSeries(SPY, theme=chartTheme('white'), up.col="black",
+ dn.col="black")
+```
+
+CREATE two vectors as a time series to make a Exponential Moving Average. 
+EMA is like a SMA except it gives more weight to the recent activity and 
+that means it tends to mimic the market a little better. 
+
+here we create a 20 period EMA
+``` {r }
+SPY.EMA.20<- EMA(SPY$SPY.Close, n=20)
+```
+here we create a 100 period EMA
+``` {r }
+SPY.EMA.100<- EMA(SPY$SPY.Close, n=100)
+```
+
+Now let's add them to our chart.
+``` {r }
+chartSeries(SPY, 
+            theme=chartTheme('white'),
+            up.col="black",
+            dn.col="black")
+```
+
+
+Dealing with Berk - errr
+```{r }
+BRKB <- as.xts(`BRK-B`)
+names(BRKB)
+names(BRKB) <- c("BRKB.Open"   ,  "BRKB.High"   ,  "BRKB.Low"   ,   "BRKB.Close"  ,  "BRKB.Volume",  "BRKB.Adjusted")
+names(BRKB)
+
+BRKB.EMA.20<- EMA(BRKB$BRKB.Close, n=20)
+BRKB.EMA.50<- EMA(BRKB$BRKB.Close, n=50)
+BRKB.EMA.100<- EMA(BRKB$BRKB.Close, n=100)
+BRKB.EMA.200<- EMA(BRKB$BRKB.Close, n=200)
+
+chartSeries(`BRK-B`, 
+            type = c("auto", "matchsticks"), 
+            subset = '2018-01::',
+            show.grid = TRUE,
+            major.ticks='auto', minor.ticks=TRUE,
+            multi.col = FALSE,
+            TA=c(addMACD(),addVo()))
+
+            addTA(BRKB.EMA.20, on=1, col = "green")
+            addTA(BRKB.EMA.50, on=1, col = "blue")
+            addTA(BRKB.EMA.100, on=1, col = "yellow")
+            addTA(BRKB.EMA.200, on=1, col = "red")
+```
+
+
+
+
+
+
+# CUSTOM INDICATOR
+=========================================================================================
+Lecture 6 ()
+
+
+
+
+
+
+================== NOTES on Syntax below here
+two options for code in MarkDown
+```{r , include=TRUE}
+getSymbols('^GSPC', src='yahoo')
+```
+
+
+```{r  }
+getSymbols('^GSPC', src='yahoo')
+```
+
+```{r}
+
+```
+
+
+Add a new chunk by clicking the *Insert Chunk* button on the toolbar or by pressing *Cmd+Option+I*.
+
+When you save the notebook, an HTML file containing the code and output will be saved alongside it (click the *Preview* button or press *Cmd+Shift+K* to preview the HTML file). 
+
+The preview shows you a rendered HTML copy of the contents of the editor. Consequently, unlike *Knit*, *Preview* does not run any R code chunks. Instead, the output of the chunk when it was last run in the editor is displayed.
+

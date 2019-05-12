@@ -1,0 +1,198 @@
+---
+title: "Practical Data Science: Analyzing Stock Market Data with R"
+output: html_notebook
+---
+
+This is an [R Markdown](http://rmarkdown.rstudio.com) Notebook. 
+
+Based on a Udemy Class
+(https://www.udemy.com/practical-data-science-analyzing-stock-market-data-with-r/learn/lecture/3407770#overview)
+
+using quantmod from Cran
+(https://cran.r-project.org/web/packages/quantmod/)
+
+
+```{r , include=FALSE}
+# install.packages('quantmod')
+library(quantmod)
+```
+
+```{r , include=FALSE}
+?quantmod
+```
+
+We'll use Yahoo here but Google Finance is also supported. 
+(https://finance.yahoo.com/lookup/)
+
+We'll call multiple symbols at once by creating a vector of symbols
+and then pass the basket to the getSymbols function.
+
+```{r , include=FALSE}
+symbolBasket <- c('AAPL', 'AMZN', 'BRK-B')
+getSymbols(symbolBasket , src='yahoo')
+```
+
+Summary will show us basics
+```{r , include=TRUE}
+summary(`BRK-B`)
+```
+
+Now lets group them all together for a future comparison. 
+Trick here is we might not have the same amount of data due to age of stocks
+we'll use the XTS nature of the data to hook them together. In this case we have all data all dates. 
+
+NOTE: BRK-B IS ODD SO IT NEEDS THE `` AROUND IT
+
+```{r , include=FALSE}
+symbolBasketGrp <- data.frame(as.xts(merge(AAPL, AMZN, `BRK-B`)))
+```
+
+======== charting starts here ===================
+```{r , include=FALSE}
+names(`BRK-B`)
+```
+
+```{r , include=FALSE}
+plot(`BRK-B`$`BRK-B.Open`)
+```
+
+To view some variation on this a bit we can use this code;
+
+```{r , include=FALSE}
+lineChart(`BRK-B`$`BRK-B.Open`, line.type = 'h', theme = 'white', TA = NULL)
+```
+
+To see volumes;
+remove the TA
+
+```{r , include=FALSE}
+lineChart(`BRK-B`, line.type = 'h', theme = 'white')
+```
+
+Barchart, type allows for high, low, close ;) 
+
+```{r , include=FALSE}
+barChart(`BRK-B`, bar.type = 'hlc', TA = NULL)
+```
+
+Now just a subset and in candle sticks
+```{r , include=FALSE}
+candleChart(`BRK-B`, TA=NULL, subset = '2019')
+```
+
+
+```{r , include=FALSE}
+?candleChart
+```
+
+## Not run: 
+getSymbols("YHOO")
+chartSeries(YHOO)
+chartSeries(YHOO, subset='last 4 months')
+chartSeries(YHOO, subset='2007::2008-01')
+chartSeries(YHOO,theme=chartTheme('white'))
+chartSeries(YHOO,TA=NULL)   #no volume
+chartSeries(YHOO,TA=c(addVo(),addBBands()))  #add volume and Bollinger Bands from TTR
+
+NOTE there are a ton of add... items that are very slick
+
+addMACD()   #  add MACD indicator to current chart
+
+setTA()
+chartSeries(YHOO)   #draws chart again, this time will all indicators present
+
+## End(Not run)
+
+Add MACD 
+
+```{r , include=FALSE}
+candleChart(`BRK-B`, TA=c(addMACD(),addVo()), subset = '2019')
+```
+
+?addMACD
+```{r , include=TRUE}
+?addMACD()
+```
+
+addMACD(fast = 12, slow = 26, signal = 9, type = "EMA", histogram = TRUE, col)
+
+Various ways to dictate time, in this case everything after...
+Also added in ADX
+```{r , include=FALSE}
+candleChart(`BRK-B`, TA=c(addMACD(),addADX()), subset = '2018-01::')
+```
+
+Various ways to dictate time, in this case everything in between...
+Background is the 'Theme'
+
+```{r , include=FALSE}
+candleChart(AAPL , TA=c(addMACD()), subset = '2018-01::2018-05', theme = 'white')
+```
+
+Various options for theme's overall
+
+```{r , include=FALSE}
+candleChart(AAPL , TA=c(addMACD()), subset = '2019-01::', theme = chartTheme('white', up.col='green',dn.col='darkred'))
+```
+
+chartSeries is another cool way to do this same stuff
+
+```{r, include=FALSE}
+?chartSeries
+```
+
+```{r, include=FALSE}
+chartSeries(AAPL, 
+            type = c("auto", "candlesticks"), 
+            subset = '2019-01::',
+            show.grid = TRUE,
+            major.ticks='auto', minor.ticks=TRUE,
+            TA=c(addMACD(),addVo()))
+```
+
+
+```{r, include=FALSE}
+chartSeries(AAPL, 
+            type = c("auto", "candlesticks"), 
+            subset = '2018-01::',
+            show.grid = TRUE,
+            major.ticks='auto', minor.ticks=TRUE,
+            multi.col = TRUE,
+            TA=c(addMACD(),addVo()))
+```
+
+```{r, include=FALSE}
+chartSeries(`BRK-B`, 
+            type = c("auto", "matchsticks"), 
+            subset = '2018-01::',
+            show.grid = TRUE,
+            major.ticks='auto', minor.ticks=TRUE,
+            multi.col = TRUE,
+            TA=c(addMACD(),addVo()))
+```
+
+
+
+
+================== NOTES on Syntax below here
+two options for code in MarkDown
+```{r , include=TRUE}
+getSymbols('^GSPC', src='yahoo')
+```
+
+
+```{r , include=FALSE}
+getSymbols('^GSPC', src='yahoo')
+```
+
+```{r}
+
+```
+
+
+Add a new chunk by clicking the *Insert Chunk* button on the toolbar or by pressing *Cmd+Option+I*.
+
+When you save the notebook, an HTML file containing the code and output will be saved alongside it (click the *Preview* button or press *Cmd+Shift+K* to preview the HTML file). 
+
+The preview shows you a rendered HTML copy of the contents of the editor. Consequently, unlike *Knit*, *Preview* does not run any R code chunks. Instead, the output of the chunk when it was last run in the editor is displayed.
+
