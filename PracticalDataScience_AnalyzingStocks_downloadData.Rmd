@@ -14,11 +14,12 @@ using quantmod from Cran
 
 Try executing this chunk by clicking the *Run* button within the chunk or by placing your cursor inside it and pressing *Cmd+Shift+Enter*. 
 
-```{r setup, include=FALSE}
+```{r , include=FALSE}
 # install.packages('quantmod')
 library(quantmod)
 ```
-```{r setup, include=FALSE}
+
+```{r , include=FALSE}
 ?quantmod
 ```
 
@@ -26,7 +27,7 @@ We'll use Yahoo here but Google Finance is also supported.
 (https://finance.yahoo.com/lookup/)
 In this case we'll use the S&P 500 as an example; code GSPC on Yahoo
 
-```{r setup, include=FALSE}
+```{r , include=FALSE}
 getSymbols('^GSPC', src='yahoo')
 ```
 ``` {r}
@@ -47,47 +48,59 @@ summary(GSPC)
 Also how to call multiple symbols at once by creating a vector of symbols
 and then pass the basket to the getSymbols function.
 
-```{r setup, include=FALSE}
+```{r , include=FALSE}
 symbolBasket <- c('AAPL', 'AMZN', 'BRK-B')
 getSymbols(symbolBasket , src='yahoo')
 ```
 
 Summary will show us basics
-```{r setup, include=TRUE}
+```{r , include=TRUE}
 summary(`BRK-B`)
 ```
 
 Now lets group them all together for a future comparison. 
 Trick here is we might not have the same amount of data due to age of stocks
-we'll use the XTS nature of the data to hook them together. 
+we'll use the XTS nature of the data to hook them together. In this case we have all data all dates. 
 
 NOTE: BRK-B IS ODD SO IT NEEDS THE `` AROUND IT
 
-```{r setup, include=FALSE}
+```{r , include=FALSE}
 symbolBasketGrp <- data.frame(as.xts(merge(AAPL, AMZN, `BRK-B`)))
 ```
 
 Let's have a look
 
-```{r setup, include=TRUE}
+```{r , include=TRUE}
 head(symbolBasketGrp)
 ```
 
-```{r setup, include=TRUE}
+```{r , include=TRUE}
 tail(symbolBasketGrp)
 ```
 
+
+
+
+
+
+
+
+
+
 ================== NOTES on Syntax below here
 two options for code in MarkDown
-```{r setup, include=TRUE}
+```{r , include=TRUE}
 getSymbols('^GSPC', src='yahoo')
 ```
 
 
-```{r setup, include=FALSE}
+```{r , include=FALSE}
 getSymbols('^GSPC', src='yahoo')
 ```
 
+```{r}
+
+```
 
 
 Add a new chunk by clicking the *Insert Chunk* button on the toolbar or by pressing *Cmd+Option+I*.
