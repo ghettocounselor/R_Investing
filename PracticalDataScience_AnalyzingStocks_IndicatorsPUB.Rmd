@@ -51,36 +51,36 @@ names(BRKB)
 
 ### Charting begins here
 
-```{r , echo=TRUE}
+```{r , echo=TRUE, fig.width=10, fig.height=7}
 plot(BRKB$BRKB.Open)
 ```
 
 To view some variation on this a bit we can use this code;
 
-```{r , echo=TRUE}
+```{r , echo=TRUE, fig.width=10, fig.height=7}
 lineChart(BRKB$BRKB.Open, line.type = 'h', theme = 'white', TA = NULL)
 ```
 
 To see volumes;
 remove the TA
 
-```{r , echo=TRUE }
+```{r , echo=TRUE, fig.width=10, fig.height=7 }
 lineChart(BRKB, line.type = 'h', theme = 'white')
 ```
 
 Barchart, type allows for high, low, close ;) 
 
-```{r , echo=TRUE }
+```{r , echo=TRUE, fig.width=10, fig.height=7 }
 barChart(BRKB, bar.type = 'hlc', TA = NULL)
 ```
 
 Now just a subset and in candle sticks
-```{r echo=TRUE}
+```{r echo=TRUE, fig.width=10, fig.height=7}
 candleChart(BRKB, TA=NULL, subset = '2019')
 ```
 
 Give a look to candleChart for features;
-```{r , echo=TRUE }
+```{r , echo=TRUE, fig.width=10, fig.height=7 }
 ?candleChart
 ```
 
@@ -104,12 +104,12 @@ chartSeries(YHOO)   #draws chart again, this time will all indicators present
 
 Add MACD 
 
-```{r , echo=TRUE }
+```{r , echo=TRUE, fig.width=10, fig.height=7 }
 candleChart(BRKB, TA=c(addMACD(),addVo()), subset = '2019')
 ```
 
 ?addMACD
-```{r , echo=TRUE}
+```{r , echo=TRUE, fig.width=10, fig.height=7}
 ?addMACD()
 ```
 
@@ -117,20 +117,20 @@ addMACD(fast = 12, slow = 26, signal = 9, type = "EMA", histogram = TRUE, col)
 
 Various ways to dictate time, in this case everything after...
 Also added in ADX
-```{r , echo=TRUE }
+```{r , echo=TRUE, fig.width=10, fig.height=7 }
 candleChart(BRKB, TA=c(addMACD(),addADX()), subset = '2018-01::')
 ```
 
 Various ways to dictate time, in this case everything in between...
 Background is the 'Theme'
 
-```{r , echo=TRUE }
+```{r , echo=TRUE, fig.width=10, fig.height=7 }
 candleChart(BRKB , TA=c(addMACD()), subset = '2018-01::2018-05', theme = 'white')
 ```
 
 Various options for theme's overall
 
-```{r , echo=TRUE }
+```{r , echo=TRUE, fig.width=10, fig.height=7 }
 candleChart(BRKB , TA=c(addMACD()), subset = '2019-01::', theme = chartTheme('white', up.col='green',dn.col='darkred'))
 ```
 
@@ -140,7 +140,7 @@ chartSeries is another cool way to do this same stuff
 ?chartSeries
 ```
 
-```{r , echo=TRUE}
+```{r , echo=TRUE, fig.width=10, fig.height=7}
 chartSeries(BRKB, 
             type = c("auto", "candlesticks"), 
             subset = '2019-01::',
@@ -150,7 +150,7 @@ chartSeries(BRKB,
 ```
 
 
-```{r , echo=TRUE}
+```{r , echo=TRUE, fig.width=10, fig.height=7}
 chartSeries(BRKB, 
             type = c("auto", "candlesticks"), 
             subset = '2018-01::',
@@ -160,7 +160,7 @@ chartSeries(BRKB,
             TA=c(addMACD(),addVo()))
 ```
 
-```{r , echo=TRUE}
+```{r , echo=TRUE, fig.width=10, fig.height=7}
 chartSeries(BRKB, 
             type = c("auto", "matchsticks"), 
             subset = '2018-01::',
@@ -183,7 +183,7 @@ So Cool!
 
 Let's do a Simple Moving Average
 
-```{r , echo=TRUE}
+```{r , echo=TRUE, fig.width=10, fig.height=7}
 chartSeries(BRKB, 
             type = c("auto", "matchsticks"), 
             subset = '2018-01::',
@@ -207,13 +207,13 @@ Experimental BBands "The primary addition to this function call over the TTR ver
 ?add_BBands
 ```
 
-``` {r , echo=TRUE }
+``` {r , echo=TRUE, fig.width=10, fig.height=7 }
 chartSeries(BRKB, theme="white",
  TA="addVo();addBBands();addCCI()", subset = '2018-01::')
 ```
 
 
-``` {r , echo=TRUE }
+``` {r , echo=TRUE, fig.width=10, fig.height=7 }
 chartSeries(BRKB, theme="white",
  TA="addVo();addBBands();addCCI()", subset = '2018-01::')
 ```
@@ -221,7 +221,7 @@ chartSeries(BRKB, theme="white",
 ### Create a Custom Indicator 
 Start with a simple chart. 
 
-``` {r , echo=TRUE }
+``` {r , echo=TRUE, fig.width=10, fig.height=7 }
 chartSeries(BRKB, theme=chartTheme('white'), up.col="black",
  dn.col="black")
 ```
@@ -231,60 +231,173 @@ EMA is like a SMA except it gives more weight to the recent activity and
 that means it tends to mimic the market a little better. 
 
 BRKB exponential moving averages
-```{r , echo=TRUE}
+```{r , echo=TRUE, fig.width=10, fig.height=7}
 
 BRKB.EMA.20<- EMA(BRKB$BRKB.Close, n=20)
 BRKB.EMA.50<- EMA(BRKB$BRKB.Close, n=50)
 BRKB.EMA.100<- EMA(BRKB$BRKB.Close, n=100)
 BRKB.EMA.200<- EMA(BRKB$BRKB.Close, n=200)
 
-chartSeries(BRKB, 
+chartSeries(BRKB, theme=chartTheme('white'),
             type = c("auto", "matchsticks"), 
             subset = '2018-01::',
             show.grid = TRUE,
             major.ticks='auto', minor.ticks=TRUE,
             multi.col = FALSE,
-            TA=c(addMACD(),addVo()))
+            TA=c(addMACD(),addVo(),addADX(n = 14, maType = "EMA")))
 
             addTA(BRKB.EMA.20, on=1, col = "green")
             addTA(BRKB.EMA.50, on=1, col = "blue")
             addTA(BRKB.EMA.100, on=1, col = "yellow")
             addTA(BRKB.EMA.200, on=1, col = "red")
+            addTA(BRKB.EMA.20 - BRKB.EMA.200, col = "black",
+                  type = 'h', legend = "100-200 EMA")
 ```
 
 
+### Create a SMA from scratch to understand
 
+Lecture 7 (https://www.udemy.com/practical-data-science-analyzing-stock-market-data-with-r/learn/lecture/3410012#questions)
 
-
-
-# CUSTOM INDICATOR
-=========================================================================================
-
-
-
-
-
-
-
-================== NOTES on Syntax below here
-two options for code in MarkDown
-```{r , include=TRUE}
-getSymbols('^GSPC', src='yahoo')
+```{r , echo=TRUE, fig.width=10, fig.height=7}
+library(quantmod)
+getSymbols(c('QQQ'), src='yahoo')
 ```
 
-
-```{r  }
-getSymbols('^GSPC', src='yahoo')
+Plot the graph of the triple Q's
+```{r , echo=TRUE, fig.width=10, fig.height=7}
+plot(QQQ$QQQ.Close)
 ```
 
-```{r}
-
+We choose a period, which sets the number of points of data that will be required to create one point of raw data (averaged) to get a point of data in our visualization. The price_vector is the group of data we want to use. 
+```{r , echo=TRUE, fig.width=10, fig.height=7}
+period <- 100
+price_vector <- QQQ$QQQ.Close
+length(price_vector)
 ```
 
+Now we need a vector to put our values into, so we'll define an empty vector that we'll then make a loop through our price_vector to fille the vector
+```{r , echo=TRUE, fig.width=10, fig.height=7}
+moving_average_vector <- c()
+```
 
-Add a new chunk by clicking the *Insert Chunk* button on the toolbar or by pressing *Cmd+Option+I*.
+Let's look at sequence to understand : and ,
+```{r , echo=TRUE, fig.width=10, fig.height=7}
+seq(5:10) # note that sequence gives us the number of values between 5 and 10 ;) 
+seq(5,10) # this sequence gives us from 5 to 10 
+```
 
-When you save the notebook, an HTML file containing the code and output will be saved alongside it (click the *Preview* button or press *Cmd+Shift+K* to preview the HTML file). 
+The 'Loop'. Let's have a look at how this comes together.
+```{r , echo=TRUE, fig.width=10, fig.height=7}
+for (ind in seq(period:length(price_vector))) { # so, period starts at 1 due to :
+        print(ind)
+        break # to stop it at the first go
+}
+```
 
-The preview shows you a rendered HTML copy of the contents of the editor. Consequently, unlike *Knit*, *Preview* does not run any R code chunks. Instead, the output of the chunk when it was last run in the editor is displayed.
+Let's fix that with a comma
+```{r , echo=TRUE, fig.width=10, fig.height=7}
+for (ind in seq(period,length(price_vector))) { # period is 100
+        print(ind)
+        break # to stop it at the first go
+}
+```
+
+Now, because we want to use 100 values as the period we need to start at 100 + 1, and we need parens. And we now can start the code to assign the values to the new empty vector. 
+```{r , echo=TRUE, fig.width=10, fig.height=7}
+for (ind in seq((period + 1),length(price_vector))) {
+    moving_average_vector <- c(moving_average_vector, # here we are saying add the mean to 
+                                                      # the moving_average_vector
+                               mean(price_vector[(ind - period):ind])) # 
+}
+```
+
+```{r , echo=TRUE, fig.width=10, fig.height=7}
+head(moving_average_vector)
+tail(moving_average_vector)
+summary(moving_average_vector)
+moving_average_vector[1:100] # show 100 items
+```
+
+We can see from above what has happened. We have, started with the first 100 recalculated the mean with each 100 previous values, all the way to the end. 
+
+Let's graph a few things. 
+```{r , echo=TRUE, fig.width=10, fig.height=7}
+par(mfrow=c(2,1)) # gives us two graphs, one on top of another
+plot(QQQ$QQQ.Close)
+plot(moving_average_vector, type = 'l', col = 'red', lwd=3,
+      main = paste('SMA', period))
+```
+
+Let's check the length. We can see that we gave up that 100 to calculate the mean given the period of 100. This means however that we cannot graph the two against one another because they are different sizes. 
+```{r , echo=TRUE, fig.width=10, fig.height=7}
+length(price_vector)
+length(moving_average_vector)
+```
+
+Let's fix that; We'll play a little trick and fill in those first 100 characters with NA using the repeat function. Here we say give me 100 NA's
+```{r , echo=TRUE, fig.width=10, fig.height=7}
+rep(NA, period)
+```
+
+So, instead of starting moving_average_vector as a blank vector we'll start with 100 NA's, or whatever the period is. 
+```{r , echo=TRUE, fig.width=10, fig.height=7}
+period <- 100
+price_vector <- QQQ$QQQ.Close
+moving_average_vector <- c(rep(NA, period))
+for (ind in seq((period + 1),length(price_vector))) {
+    moving_average_vector <- c(moving_average_vector, # here we are saying add the mean to 
+                                                      # the moving_average_vector
+                               mean(price_vector[(ind - period):ind])) # 
+}
+```
+
+Check the length. Bingo. 
+```{r , echo=TRUE, fig.width=10, fig.height=7}
+length(moving_average_vector)
+length(price_vector)
+```
+
+Now we can add our moving average to the XTS object of the QQQ's.
+```{r , echo=TRUE, fig.width=10, fig.height=7}
+QQQ$QQQ.Close.SMA <- moving_average_vector
+names(QQQ)
+```
+
+Let's graph the close and the new SMA. 
+```{r , echo=TRUE, fig.width=10, fig.height=7}
+plot(QQQ$QQQ.Close)
+lines(QQQ$QQQ.Close.SMA, type = 'l', col = 'red', lwd = 6)
+```
+
+Let's call the same thing from TTR package ;) 
+We'll use fresh data. Same thing 2 lines of code. 
+```{r , echo=TRUE, fig.width=10, fig.height=7}
+getSymbols(c('QQQ'), src = 'yahoo')
+chartSeries(QQQ, theme='white', TA="addSMA(100)")
+```
+
+Basics of code behind what is shown.
+
+### Not run:
+
+##### ```{r,  echo=TRUE, fig.width=10, fig.height=7}
+
+##### plot(BRKB$BRKB.Open)
+
+##### ```
+
+### End(Not run)
+
+
+
+
+
+
+
+
+
+
+
+
 
