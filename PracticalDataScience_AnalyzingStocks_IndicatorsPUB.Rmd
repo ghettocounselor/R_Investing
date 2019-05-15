@@ -1,5 +1,5 @@
 ---
-title: "Analyzing Stock Market Data with R"
+title: "Analyzing Stock Market Data with R - Stock Analysis"
 output: html_notebook
 ---
 
@@ -389,15 +389,51 @@ Basics of code behind what is shown.
 
 ### End(Not run)
 
+### Multiple Moving Averages
+Following along with class. Most of this I've already delved into along the way above.
+```{r , echo=TRUE, fig.width=10, fig.height=7}
+library(quantmod)
+getSymbols(c('EWP', 'SPY'), src='yahoo')
+```
 
+```{r , echo=TRUE, fig.width=10, fig.height=7}
+chartSeries(EWP$EWP.Close, theme="white", TA="addEMA(50, col='black');addEMA(200, col='blue')")
+chartSeries(SPY$SPY.Close, theme="white", TA="addEMA(50, col='black');addEMA(200, col='blue')")
+```
 
+Let's pull in TTR package
+```{r , echo=TRUE, fig.width=10, fig.height=7}
+library('TTR')
+```
 
+```{r , echo=TRUE, fig.width=10, fig.height=7}
+chartSeries(SPY$SPY.Close, theme="white", TA="addEMA(50, col='black');addEMA(200, col='blue')")
+SPY.EMA.50<- EMA(SPY$SPY.Close, n=50, ) 
+SPY.EMA.200<- EMA(SPY$SPY.Close, n=200, )  
+addTA(SPY.EMA.50 - SPY.EMA.200,col='blue', type='h',legend="50-200 MA")
+```
 
+```{r , echo=TRUE, fig.width=10, fig.height=7}
+chartSeries(EWP$EWP.Close, theme="white", TA="addEMA(50, col='black');addEMA(200, col='blue')")
+EWP.EMA.50<- EMA(SPY$SPY.Close, n=50 ) 
+EWP.EMA.200<- EMA(SPY$SPY.Close, n=200 )  
+# add Technical Analysis the fast minus the slow EMA
+addTA(EWP.EMA.50 - EWP.EMA.200,col='blue', type='h',legend="50-200 MA")
+```
+What this fast - slow tells us is that when it is above 0 (positive) things are bullish and when things are negative things are bullish. 
 
+```{r , echo=TRUE, fig.width=10, fig.height=7}
+chartSeries(SPY$SPY.Close, theme="white", TA="addEMA(50, col='black');addEMA(200, col='blue')")
+SPY.EMA.10 <- EMA(SPY$SPY.Close, n=10 ) 
+SPY.EMA.50 <- EMA(SPY$SPY.Close, n=50 ) 
+SPY.EMA.200 <- EMA(SPY$SPY.Close, n=200 ) 
+Fast.Diff <- SPY.EMA.10 - SPY.EMA.50
+Slow.Diff <- SPY.EMA.50 - SPY.EMA.200
+addTA(Fast.Diff, col='blue', type='h',legend="10-50 MA used for in-out of market")
+addTA(Slow.Diff, col='red', type='h',legend="50-200 MA give trending sense")
+```
 
-
-
-
+# moved to docucment "TradingWithTrend"
 
 
 
