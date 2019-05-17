@@ -1,0 +1,162 @@
+---
+title: "Analyzing Stock Market Data with R - Trend Analysis
+output: html_document
+description: working through the design of a trending / trading system.
+---
+
+Trading With The Trend
+
+You can only enter in the direction of the red Slow.Diff indicator, if its above zero you can take long signals, if its below zero, you can take short signals. The Fast.Diff indicator dictates the entries. When the blue line goes from negative to positive, its a long trade (and the slower red Slow.Diff indicator is above zero). Same thing for shorts. This is also referred to as a moving average crossover trading system.
+
+To run this system, we need to build rules to hunt them down. The rules are:
+
+    if no position: red > 0 and blue-1 < 0 and blue > 0 go long
+    if long: blue < 0 exit long
+    
+    if no position: red < 0 and blue-1 > 0 and blue < 0 go short
+    if short: blue > 0 exit short
+
+This is the base of a trend following system with plenty of room for improvement.
+
+There are different ways to code this, but a simple way is to use a lag on the fast indicator.
+
+Let's first remember a basic report we built with some EMA's and comparisons of fast and slow trends. 
+```{r , echo=TRUE, fig.width=10, fig.height=7}
+library('quantmod')
+library('TTR')
+getSymbols(c('SPY', 'AMZN', '^GSPC'), src='yahoo')
+```
+
+And the graph for SPY
+```{r , echo=TRUE, fig.width=10, fig.height=7}
+chartSeries(SPY, theme=chartTheme('white'),
+            type = c("auto", "matchsticks"), 
+            subset = '2016-01::',
+            show.grid = TRUE,
+            major.ticks='auto', minor.ticks=TRUE,
+            multi.col = FALSE,
+            TA="addEMA(50, col='black');addEMA(200, col='blue')")
+
+SPY.EMA.10 <- EMA(SPY$SPY.Close, n=10 ) 
+SPY.EMA.50 <- EMA(SPY$SPY.Close, n=50 ) 
+SPY.EMA.200 <- EMA(SPY$SPY.Close, n=200 ) 
+SPY.Fast.Diff <- SPY.EMA.10 - SPY.EMA.50
+SPY.Slow.Diff <- SPY.EMA.50 - SPY.EMA.200
+addTA(SPY.Fast.Diff, col='blue', type='h',legend="10-50 MA used for in-out of market")
+addTA(SPY.Slow.Diff, col='red', type='h',legend="50-200 MA give trending sense")
+addTA=c(addMACD(),addVo(),addADX(n = 14, maType = "EMA"))
+```
+
+
+Here's another example of S&P 500 SAME TIME FRAME AS CLASS
+
+```{r , echo=TRUE, fig.width=10, fig.height=7}
+getSymbols(c('^GSPC'), src='yahoo')
+chartSeries(GSPC, theme=chartTheme('white'),
+            type = c("auto", "matchsticks"), 
+            subset = '2007-01::2015',
+            show.grid = TRUE,
+            major.ticks='auto', minor.ticks=TRUE,
+            multi.col = FALSE,
+            TA="addEMA(50, col='black');addEMA(200, col='blue')")
+
+GSPC.EMA.10 <- EMA(GSPC$GSPC.Close, n=10 ) 
+GSPC.EMA.50 <- EMA(GSPC$GSPC.Close, n=50 ) 
+GSPC.EMA.200 <- EMA(GSPC$GSPC.Close, n=200 ) 
+GSPC.Fast.Diff <- GSPC.EMA.10 - GSPC.EMA.50
+GSPC.Slow.Diff <- GSPC.EMA.50 - GSPC.EMA.200
+addTA(GSPC.Fast.Diff, col='blue', type='h',legend="10-50 MA used for in-out of market")
+addTA(GSPC.Slow.Diff, col='red', type='h',legend="50-200 MA give trending sense")
+addTA=c(addMACD(),addVo(),addADX(n = 14, maType = "EMA"))
+```
+
+And AMZN
+```{r , echo=TRUE, fig.width=10, fig.height=7}
+chartSeries(AMZN, theme=chartTheme('white'),
+            type = c("auto", "matchsticks"), 
+            subset = '2016-01::',
+            show.grid = TRUE,
+            major.ticks='auto', minor.ticks=TRUE,
+            multi.col = FALSE,
+            TA="addEMA(50, col='black');addEMA(200, col='blue')")
+
+AMZN.EMA.10 <- EMA(AMZN$AMZN.Close, n=10 ) 
+AMZN.EMA.50 <- EMA(AMZN$AMZN.Close, n=50 ) 
+AMZN.EMA.200 <- EMA(AMZN$AMZN.Close, n=200 ) 
+AMZN.Fast.Diff <- AMZN.EMA.10 - AMZN.EMA.50
+AMZN.Slow.Diff <- AMZN.EMA.50 - AMZN.EMA.200
+addTA(AMZN.Fast.Diff, col='blue', type='h',legend="10-50 MA used for in-out of market")
+addTA(AMZN.Slow.Diff, col='red', type='h',legend="50-200 MA give trending sense")
+addTA=c(addMACD(),addVo(),addADX(n = 14, maType = "EMA"))
+```
+
+Another key aspect in the hunt for trades is the shift function from the binhf package (https://cran.r-project.org/web/packages/binhf/index.html). This function will allow us to easily compare a vector of data with the value preceding it (or x values preceding it). Here we’ll use the shift function to find when our differenced indicators change from below to above the zero line, or from above to below (basically when the value changes sign).
+
+Let's install binhf package.
+NOTE: SMA not EMA as above.
+```{r , echo=TRUE, fig.width=10, fig.height=7}
+# install.packages('binhf')
+library(binhf)
+# in class he switched from EMA to SMA
+GSPC.SMA.10 <- SMA(GSPC$GSPC.Close, n=10 ) 
+GSPC.SMA.50 <- SMA(GSPC$GSPC.Close, n=50 ) 
+GSPC.SMA.200 <- SMA(GSPC$GSPC.Close, n=200 ) 
+GSPC.FastS.Diff <- GSPC.SMA.10 - GSPC.SMA.50
+GSPC.SlowS.Diff <- GSPC.SMA.50 - GSPC.SMA.200
+# let's look at a shift in the tail
+tail(as.numeric(GSPC.FastS.Diff))
+tail(shift(v=as.numeric(GSPC.FastS.Diff), places=1, dir="right")) 
+```
+Notice above how the data in the two tails is actually just shifted, 1 place to the left. This will allow us to compare the two tails in a column for to see a trend. 
+
+Now, we'll code the rules:
+
+    if no position: red > 0 and blue-1 < 0 and blue > 0 go long
+    if long: blue < 0 exit long
+    
+    if no position: red < 0 and blue-1 > 0 and blue < 0 go short
+    if short: blue > 0 exit short
+    
+```{r , echo=TRUE, fig.width=10, fig.height=10}
+GSPC.Long_Trades <- ifelse(
+      GSPC.SlowS.Diff > 0 &
+      GSPC.FastS.Diff > 0 & 
+      shift(v=as.numeric(GSPC.FastS.Diff), places=1,dir = 'right') < 0,
+      GSPC$GSPC.Close, NA)
+
+GSPC.Short_Trades <- ifelse(
+      GSPC.SlowS.Diff < 0 &
+      GSPC.FastS.Diff < 0 & 
+      shift(v=as.numeric(GSPC.FastS.Diff), places=1,dir = 'right') > 0,
+      GSPC$GSPC.Close, NA)
+
+plot(GSPC$GSPC.Close)
+
+points(GSPC.Long_Trades, col='blue', cex=1.5, pch=18)
+points(GSPC.Short_Trades, col='red', cex=1.5, pch=18)
+#addTA(GSPC.Fast.Diff, col='blue', type='h',legend="10-50 MA used for in-out of market")
+#addTA(GSPC.Slow.Diff, col='red', type='h',legend="50-200 MA give trending sense")
+#addTA=c(addMACD(),addADX(n = 14, maType = "EMA"))
+```
+
+Now with SPY and EMA's.
+```{r , echo=TRUE, fig.width=10, fig.height=7}
+SPY.Long_Trades <- ifelse(
+      SPY.Slow.Diff > 0 &
+      SPY.Fast.Diff > 0 & 
+      shift(v=as.numeric(SPY.Fast.Diff), places=1,dir = 'right') < 0,
+      SPY$SPY.Close, NA)
+
+SPY.Short_Trades <- ifelse(
+      SPY.Slow.Diff < 0 &
+      SPY.Fast.Diff < 0 & 
+      shift(v=as.numeric(SPY.Fast.Diff), places=1,dir = 'right') > 0,
+      SPY$SPY.Close, NA)
+
+plot(SPY$SPY.Close)
+
+points(SPY.Long_Trades, col='blue', cex=1.5, pch=18)
+points(SPY.Short_Trades, col='red', cex=1.5, pch=18)
+```
+
+

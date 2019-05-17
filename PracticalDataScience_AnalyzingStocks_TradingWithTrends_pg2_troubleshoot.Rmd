@@ -1,0 +1,184 @@
+---
+#title: "Analyzing Stock Market Data with R - Trend Analysis Ehanced tweaks""
+#output: html_document
+#description: working through the design of a trading system enhanced.
+---
+
+Trading With The Trend, page 2 expanding
+
+```{r , echo=TRUE, fig.width=10, fig.height=7}
+library('quantmod')
+getSymbols(c('SPY', 'AMZN', '^GSPC'), src='yahoo')
+# install.packages('binhf')
+library('binhf')
+library('TTR')
+```
+
+```{r , echo=TRUE, fig.width=10, fig.height=7}
+SPY.EMA.10 <- EMA(SPY$SPY.Close, n=10 ) 
+SPY.EMA.50 <- EMA(SPY$SPY.Close, n=50 ) 
+SPY.EMA.200 <- EMA(SPY$SPY.Close, n=200 ) 
+SPY.Fast.Diff <- SPY.EMA.10 - SPY.EMA.50
+SPY.Slow.Diff <- SPY.EMA.50 - SPY.EMA.200
+```
+
+```{r , echo=TRUE, fig.width=10, fig.height=7}
+SPY.Long_Trades <- ifelse(
+      SPY.Slow.Diff > 0 &
+      SPY.Fast.Diff > 0 & 
+      shift(v=as.numeric(SPY.Fast.Diff), places=1,dir = 'right') < 0,
+      SPY$SPY.Close, NA)
+
+SPY.Short_Trades <- ifelse(
+      SPY.Slow.Diff < 0 &
+      SPY.Fast.Diff < 0 & 
+      shift(v=as.numeric(SPY.Fast.Diff), places=1,dir = 'right') > 0,
+      SPY$SPY.Close, NA)
+
+plot(SPY$SPY.Close)
+
+points(SPY.Long_Trades, col='blue', cex=1.5, pch=18)
+points(SPY.Short_Trades, col='red', cex=1.5, pch=18)
+
+# kick out pdf of last plot
+dev.copy(pdf, "/Users/markloessi/InvestingCode/R_Investing/SPY-SPY-CLOSE-trendInOut1050200.pdf", width=10, height=7)
+dev.off()
+```
+
+Slowing down the moving averages might help us see things better, the above has to many poor trades being identified. 
+
+Let’s see how trying different moving-average periods affect the entry system. Instead of the 10,50,200 series, let’s try both indexes on 20, 100, 300 on the S&P 500:
+
+```{r , echo=TRUE, fig.width=10, fig.height=7}
+SPY.EMA.FastS <- EMA(SPY$SPY.Close, n=20 ) 
+SPY.EMA.MediumS <- EMA(SPY$SPY.Close, n=100 ) 
+SPY.EMA.SlowS <- EMA(SPY$SPY.Close, n=300 ) 
+SPY.Fast.DiffS <- SPY.EMA.FastS - SPY.EMA.MediumS
+SPY.Slow.DiffS <- SPY.EMA.MediumS - SPY.EMA.SlowS
+```
+
+```{r , echo=TRUE, fig.width=10, fig.height=7}
+# look for long entries
+SPY.Long_TradesS <- ifelse(
+        SPY.Slow.DiffS  > 0 &
+                SPY.Fast.DiffS  > 0 &
+                shift(v=as.numeric(SPY.Fast.DiffS), places=1, dir="right") < 0,
+                SPY$SPY.Close, NA)
+
+# look for long exits (same thing but inverse signts)
+SPY.Short_TradesS <- ifelse(
+        SPY.Slow.DiffS  < 0 &
+                SPY.Fast.DiffS  < 0 &
+                shift(v=as.numeric(SPY.Fast.DiffS), places=1, dir="right") > 0,
+                SPY$SPY.Close, NA)
+
+plot(SPY$SPY.Close)
+
+## Warning in plot.xts(SPY): only the univariate series will be plotted
+points(SPY.Long_TradesS, col='blue', cex=1.5, pch=18)
+points(SPY.Short_TradesS, col='red', cex=1.5, pch=18)
+
+# kick out pdf of last plot
+dev.copy(pdf, "/Users/markloessi/InvestingCode/R_Investing/SPY-SPY-CLOSE-trendInOut10100300.pdf", width=10, height=7)
+dev.off()
+```
+
+Adding extra rules
+
+Let’ try adding an interesting rule twist. Instead of entering when the slower indicator (red colored difference of the slower moving averages) is either above zero for longs and below zero for shorts, let’s enter when its moving in the trade’s direction.
+
+New rules are:
+
+    if no position: red-1 < red and blue-1 < 0 and blue > 0 go long
+    if long: blue < 0 exit long
+    
+    if no position: red-1 > red and blue-1 > 0 and blue < 0 go short
+    if short: blue > 0 exit short
+
+```{r , echo=TRUE, fig.width=10, fig.height=7}
+# duplicate from above only so we can see it
+SPY.EMA.FastS <- EMA(SPY$SPY.Close, n=20 ) 
+SPY.EMA.MediumS <- EMA(SPY$SPY.Close, n=100 ) 
+SPY.EMA.SlowS <- EMA(SPY$SPY.Close, n=300 ) 
+SPY.Fast.DiffS <- SPY.EMA.FastS - SPY.EMA.MediumS
+SPY.Slow.DiffS <- SPY.EMA.MediumS - SPY.EMA.SlowS
+```
+A for adjusted theory, aka we've enhanced the logn and short thinking.
+```{r , echo=TRUE, fig.width=10, fig.height=7}
+# look for long entries
+SPY.Long_TradesSA <- ifelse(
+        SPY.Slow.DiffS  > # when the slow diff is greater than the previous slow dif
+        shift(v=as.numeric(SPY.Slow.DiffS), places=1, dir="right") &
+        SPY.Fast.DiffS  > 0 & # and the fast diff is greater than Zero
+        shift(v=as.numeric(SPY.Fast.DiffS), places=1, dir="right") < 0, # and previous fast is less than Zero
+                SPY$SPY.Close, NA) 
+
+# look for long exits (same thing but inverse signts) ala the shorts
+SPY.Short_TradesSA <- ifelse(
+        SPY.Slow.DiffS  < 
+        shift(v=as.numeric(SPY.Slow.DiffS), places=1, dir="right") &       
+        SPY.Fast.DiffS  < 0 &
+        shift(v=as.numeric(SPY.Fast.DiffS), places=1, dir="right") > 0,
+        SPY$SPY.Close, NA)
+
+plot(SPY$SPY.Close)
+
+## Warning in plot.xts(SPY): only the univariate series will be plotted
+points(SPY.Long_TradesSA, col='blue', cex=1.5, pch=18)
+points(SPY.Short_TradesSA, col='red', cex=1.5, pch=18)
+
+# kick out pdf of last plot
+dev.copy(pdf, "/Users/markloessi/InvestingCode/R_Investing/SPY-SPY-CLOSE-trendInOut20100300Enh.pdf", width=10, height=7)
+dev.off()
+```
+
+```{r , echo=TRUE, fig.width=10, fig.height=7}
+chartSeries(SPY, theme="white",
+            TA="addEMA(50, col='black');addEMA(300, col='blue')")
+addTA(SPY.Fast.DiffS, col='blue', type='h',legend="20-100 MA")
+addTA(SPY.Fast.DiffS, col='red', type='h',legend="100-300 MA")
+```
+
+What we've learned here is that all the choppy goings on here is overwhelming the trending system as what we are seeing on our latest sysem (reproduced below) with the shorter EMA's is really not producing something that we'd want to use on this stock. 
+
+Lets go back to 10 - 50 - 200 for this display.
+```{r , echo=TRUE, fig.width=10, fig.height=7}
+SPY.EMA.Fast <- EMA(SPY$SPY.Close, n=10 ) 
+SPY.EMA.Medium <- EMA(SPY$SPY.Close, n=50 ) 
+SPY.EMA.Slow <- EMA(SPY$SPY.Close, n=200 ) 
+SPY.Fast.Diff <- SPY.EMA.Fast - SPY.EMA.Medium
+SPY.Slow.Diff <- SPY.EMA.Medium - SPY.EMA.Slow
+```
+
+```{r , echo=TRUE, fig.width=10, fig.height=7}
+# look for long entries
+SPY.Long_TradesA <- ifelse(
+        SPY.Slow.Diff  > # when the slow diff is greater than the previous slow dif
+        shift(v=as.numeric(SPY.Slow.Diff), places=1, dir="right") &
+        SPY.Fast.Diff  > 0 & # and the fast diff is greater than Zero
+        shift(v=as.numeric(SPY.Fast.Diff), places=1, dir="right") < 0, # and previous fast is less than Zero
+                SPY$SPY.Close, NA) 
+
+# look for long exits (same thing but inverse signts) ala the shorts
+SPY.Short_TradesA <- ifelse(
+        SPY.Slow.Diff  < 
+        shift(v=as.numeric(SPY.Slow.Diff), places=1, dir="right") &       
+        SPY.Fast.Diff  < 0 &
+        shift(v=as.numeric(SPY.Fast.Diff), places=1, dir="right") > 0,
+        SPY$SPY.Close, NA)
+
+plot(SPY$SPY.Close)
+
+## Warning in plot.xts(SPY): only the univariate series will be plotted
+points(SPY.Long_TradesA, col='blue', cex=1.5, pch=18)
+points(SPY.Short_TradesA, col='red', cex=1.5, pch=18)
+
+# kick out pdf of last plot
+dev.copy(pdf, "/Users/markloessi/InvestingCode/R_Investing/SPY-SPY-CLOSE-trendInOut1050200Enh.pdf", width=10, height=7)
+dev.off()
+```
+
+
+
+
+
